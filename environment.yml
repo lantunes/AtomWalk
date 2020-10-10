@@ -1,0 +1,18 @@
+name: atomwalk_env
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.6
+  - pandas
+  - pymatgen
+  - matplotlib
+  - networkx
+  - numpy
+  - scikit-learn
+  - tqdm
+  - pip
+  - pip:
+    - glove_python
+    - git+https://github.com/lantunes/GraVe.git
