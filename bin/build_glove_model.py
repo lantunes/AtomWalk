@@ -4,16 +4,11 @@ from glove import Glove, Corpus
 
 
 def read_corpus(filename):
-    delchars = [chr(c) for c in range(256)]
-    delchars = [x for x in delchars if not x.isalnum()]
-    delchars.remove(' ')
-    delchars = ''.join(delchars)
-    o = gzip.open(filename, 'r') if filename.endswith(".gz") else open(filename, 'r')
+    o = gzip.open(filename, 'rt') if filename.endswith(".gz") else open(filename, 'rt')
     with o as datafile:
         for line in datafile:
-            lower_line = line.lower()
-            table = lower_line.maketrans(dict.fromkeys(delchars))
-            yield lower_line.translate(table).split(' ')
+            line = line.strip()
+            yield line.split(' ')
 
 
 if __name__ == '__main__':
@@ -41,6 +36,9 @@ if __name__ == '__main__':
     parser.add_argument('--window', '-w', action='store', type=int,
                         default=10,
                         help='The length of the (symmetric) context window used for co-occurrence.')
+    parser.add_argument('--max_count', '-m', action='store', type=int,
+                        default=100,
+                        help='The max co-occurrence count.')
     args = parser.parse_args()
 
     print('Pre-processing corpus')
@@ -51,7 +49,7 @@ if __name__ == '__main__':
     print('Collocations: %s' % corpus_model.matrix.nnz)
 
     print('Training the GloVe model')
-    glove = Glove(no_components=args.components, learning_rate=args.learning_rate)
+    glove = Glove(no_components=args.components, learning_rate=args.learning_rate, max_count=args.max_count)
     glove.fit(corpus_model.matrix, epochs=int(args.train),
               no_threads=args.parallelism, verbose=True)
     glove.add_dictionary(corpus_model.dictionary)

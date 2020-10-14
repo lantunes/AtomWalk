@@ -8,6 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 import multiprocessing as mp
 import gzip
+import logging
 
 from atomwalk import LatticeGraphWalk
 
@@ -32,11 +33,13 @@ def listener(queue, filename, zip, n):
             pbar.update(1)
 
 
-def worker(structs, queue, p, q, num_walks, walk_length):
+def worker(structs, queue, p, q, num_walks, walk_length, verbose):
     for i in range(len(structs)):
-        struct = structs[i]
-        walks = LatticeGraphWalk.walk(struct, p, q, num_walks, walk_length)
-        queue.put(walks)
+        try:
+            queue.put(LatticeGraphWalk.walk(structs[i], p, q, num_walks, walk_length))
+        except Exception as e:
+            if verbose:
+                logging.warning(e)
 
 
 if __name__ == '__main__':
@@ -55,8 +58,12 @@ if __name__ == '__main__':
                         help='Length of walk per source. Default is 80.')
     parser.add_argument('--num-walks', type=int, default=10,
                         help='Number of walks per source. Default is 10.')
+    parser.add_argument('--processes', type=int, default=mp.cpu_count(),
+                        help='The number of processes to create. Default is the CPU count.')
     parser.add_argument('--workers', type=int, default=1,
                         help='The number of worker processes to use. Default is 1.')
+    parser.add_argument('--verbose', '-v', action='store_true',
+                        help='If present, warnings will be logged.')
     args = parser.parse_args()
 
     print("reading pickle file...")
@@ -68,14 +75,14 @@ if __name__ == '__main__':
 
     manager = mp.Manager()
     queue = manager.Queue()
-    pool = mp.Pool(mp.cpu_count() + 2)
+    pool = mp.Pool(args.processes)
 
     watcher = pool.apply_async(listener, (queue, args.out, args.zip, len(df),))
 
     jobs = []
     for i in range(args.workers):
         chunk = chunks[i]
-        job = pool.apply_async(worker, (chunk[:,0], queue, args.p, args.q, args.num_walks, args.walk_length))
+        job = pool.apply_async(worker, (chunk[:,0], queue, args.p, args.q, args.num_walks, args.walk_length, args.verbose))
         jobs.append(job)
 
     for job in jobs:
