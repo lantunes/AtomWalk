@@ -39,7 +39,14 @@ class LatticeCorpus:
         return counts
 
     @staticmethod
-    def to_cooccurrence_count_matrix(counts):
+    def to_cooccurrence_count_matrix(counts, p=None):
+        """
+        :param counts: the co-occurrence count dictionary
+        :param p: normalization factor; if None, no normalization will be performed
+                  See: Zhou, Quan, et al. "Learning atoms for materials discovery." Proceedings of the National Academy
+                  of Sciences 115.28 (2018): E6411-E6417
+        :return: the co-occurrence count matrix and the associated dictionary of atom name to its index
+        """
         atoms = set()
         for key in counts:
             for a in key:
@@ -60,55 +67,58 @@ class LatticeCorpus:
                 M[dictionary[e1]][dictionary[e2]] = counts[key]
                 M[dictionary[e2]][dictionary[e1]] = counts[key]
 
+        if p:
+            M = M / (np.sum(M, axis=1).reshape(-1, 1)**p) ** (1 / p)
+
         return M, dictionary
 
 
 class CooccurrenceCountModel:
-    def __init__(self, counts):
-        self.word_vectors, self.dictionary = LatticeCorpus.to_cooccurrence_count_matrix(counts)
+    def __init__(self, counts, p=None):
+        self.vectors, self.dictionary = LatticeCorpus.to_cooccurrence_count_matrix(counts, p)
 
     @staticmethod
-    def load(counts_filename):
+    def load(counts_filename, p=None):
         with open(counts_filename, "rb") as f:
             counts = pickle.load(f)
-        return CooccurrenceCountModel(counts)
+        return CooccurrenceCountModel(counts, p)
 
 
 class EigenModel:
-    def __init__(self, counts, d):
-        M, self.dictionary = LatticeCorpus.to_cooccurrence_count_matrix(counts)
+    def __init__(self, counts, d, p=None):
+        M, self.dictionary = LatticeCorpus.to_cooccurrence_count_matrix(counts, p)
         eigenvalues, eigenvectors = scipy.linalg.eigh(M)
         first_d_eigenvectors = eigenvectors[:, :d]  # first_d_eigenvectors is a len(M)xd matrix
-        self.word_vectors = first_d_eigenvectors
+        self.vectors = first_d_eigenvectors
 
     @staticmethod
-    def load(counts_filename, d):
+    def load(counts_filename, d, p=None):
         with open(counts_filename, "rb") as f:
             counts = pickle.load(f)
-        return EigenModel(counts, d)
+        return EigenModel(counts, d, p)
 
 
 class SVDModel:
-    def __init__(self, counts, d):
-        M, self.dictionary = LatticeCorpus.to_cooccurrence_count_matrix(counts)
+    def __init__(self, counts, d, p=None):
+        M, self.dictionary = LatticeCorpus.to_cooccurrence_count_matrix(counts, p)
         U, S, V = svd(M)
-        self.word_vectors = U[:, :d]
+        self.vectors = U[:, :d]
 
     @staticmethod
-    def load(counts_filename, d):
+    def load(counts_filename, d, p=None):
         with open(counts_filename, "rb") as f:
             counts = pickle.load(f)
-        return SVDModel(counts, d)
+        return SVDModel(counts, d, p)
 
 
 class PCAModel:
-    def __init__(self, counts, d):
-        M, self.dictionary = LatticeCorpus.to_cooccurrence_count_matrix(counts)
+    def __init__(self, counts, d, p=None):
+        M, self.dictionary = LatticeCorpus.to_cooccurrence_count_matrix(counts, p)
         pca = PCA(n_components=d)
-        self.word_vectors = pca.fit(M)
+        self.vectors = pca.fit(M)
 
     @staticmethod
-    def load(counts_filename, d):
+    def load(counts_filename, d, p=None):
         with open(counts_filename, "rb") as f:
             counts = pickle.load(f)
-        return SVDModel(counts, d)
+        return SVDModel(counts, d, p)
