@@ -2,9 +2,8 @@ import numpy as np
 from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import cross_validate
 from glove import Glove
-from atomwalk import EigenModel, SVDModel, PCAModel, OneHotVectors, RandomVectors
-import skipatom
-import collections
+from atomwalk import SVDModel, OneHotVectors, RandomVectors, SVDModelFromGloVeCorpus
+from skipatom import SkipAtomModel, Word2VecModel
 
 try:
     import cPickle as pickle
@@ -55,15 +54,35 @@ if __name__ == '__main__':
 
     # pairs = "../out/all_stable_bandgap_2020_10_09.pairs.dim20.model"  # 0.1494024 +/- 0.00506478
     # pairs = "../out/all_stable_bandgap_2020_10_09.pairs.dim30.model"  # 0.1378849 +/- 0.0054404
-    # td = skipatom.TrainingData.load("../out/all_stable_bandgap_2020_10_09.pairs.training.data")
-    pairs = "../out/all_bandgap_2020_10_09.pairs.dim20.model"  # 0.148544 +/- 0.0060257
+    # td = "../out/all_stable_bandgap_2020_10_09.pairs.training.data"
+    # pairs = "../out/all_bandgap_2020_10_09.pairs.dim20.model"  # 0.148544 +/- 0.0060257
     # pairs = "../out/all_bandgap_2020_10_09.pairs.dim30.model"  # 0.13428 +/- 0.006687
-    td = skipatom.TrainingData.load("../out/all_bandgap_2020_10_09.pairs.training.data")
-    Model = collections.namedtuple("Model", ["dictionary"])
-    model = Model(dictionary=td.atom_to_index)
-    embeddings = skipatom.Trainer.load_embeddings(pairs)
+    # td = "../out/all_bandgap_2020_10_09.pairs.training.data"
+    # model = SkipAtomModel.load(pairs, td)
+    # embeddings = model.vectors
 
-    # TODO try learning the embeddings using GloVe and the co-occurrence counts; allow for self-interactions
+    # model_file = "../out/all_stable_bandgap_2020_10_09.counts.dim20.glove.model"  # 0.2795177 +/- 0.021016494
+    # model_file = "../out/all_stable_bandgap_2020_10_09.counts.dim30.glove.model"  # 0.270738 +/- 0.022560
+    # model = Glove.load(model_file)
+    # embeddings = model.word_vectors
+
+    # corpus_model = "../out/all_stable_bandgap_2020_10_09_p1_q1_walk10_len40.dim20.corpus.model"
+    # model = SVDModelFromGloVeCorpus.load(corpus_model, d=20)  # 0.163633 +/- 0.0102817
+    # model = SVDModelFromGloVeCorpus.load(corpus_model, d=20, p=2)  # 0.157051 +/- 0.005453
+    # model = SVDModelFromGloVeCorpus.load(corpus_model, d=30)  # 0.149208 +/- 0.007384
+    # model = SVDModelFromGloVeCorpus.load(corpus_model, d=30, p=2)  # 0.14084955 +/- 0.00754577
+    # embeddings = model.vectors
+
+    # corpus_model = "../out/all_bandgap_2020_10_09_p1_q1_walk10_len40.dim20.corpus.model"
+    # model = SVDModelFromGloVeCorpus.load(corpus_model, d=20)  # 0.160385 +/- 0.009316
+    # model = SVDModelFromGloVeCorpus.load(corpus_model, d=20, p=2)  # 0.16224140 +/- 0.00850218
+    # model = SVDModelFromGloVeCorpus.load(corpus_model, d=30)  # 0.1421715 +/- 0.0037470
+    # model = SVDModelFromGloVeCorpus.load(corpus_model, d=30, p=2)  # 0.1447200 +/- 0.00942118
+    # embeddings = model.vectors
+
+    model_file = "../out/all_stable_bandgap_2020_10_09_p4_q1_walk10_len40.dim30.word2vec.model"  # 0.174962 +/- 0.008083
+    model = Word2VecModel.load(model_file)
+    embeddings = model.vectors
 
     with open("../out/abc2d6_training.pkl", 'rb') as pickle_file:
         X, y = pickle.load(pickle_file)

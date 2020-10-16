@@ -12,6 +12,7 @@ dependencies:
   - numpy
   - scikit-learn
   - tqdm
+  - gensim
   - pip
   - pip:
     - glove_python

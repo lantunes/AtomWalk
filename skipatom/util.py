@@ -9,6 +9,7 @@ def get_cooccurrence_pairs(struct):
     G = struct_graph.graph.to_undirected()
     for n in labels:
         target = labels[n]
+        # TODO what if the atom doesn't have any neighbors?
         neighbors = [labels[i] for i in G.neighbors(n)]
         for neighbor in neighbors:
             pairs.append((target, neighbor))

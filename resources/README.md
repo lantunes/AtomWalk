@@ -289,6 +289,22 @@ python bin/count_cooccurrences.py \
 --workers 4
 ```
 
+`all_stable_bandgap_2020_10_09.counts.dim20.glove.model`:
+```
+python bin/build_glove_model_from_counts.py \
+--counts out/all_stable_bandgap_2020_10_09.counts.pkl \
+--out out/all_stable_bandgap_2020_10_09.counts.dim20 \
+--components 20 --train 50
+```
+
+`all_stable_bandgap_2020_10_09.counts.dim30.glove.model`:
+```
+python bin/build_glove_model_from_counts.py \
+--counts out/all_stable_bandgap_2020_10_09.counts.pkl \
+--out out/all_stable_bandgap_2020_10_09.counts.dim30 \
+--components 30 --train 50
+```
+
 
 ### One-hot vectors
 
@@ -382,6 +398,25 @@ python bin/create_skipatom_embeddings.py \
 --data out/all_bandgap_2020_10_09.pairs.training.data \
 --out out/all_bandgap_2020_10_09.pairs.dim30.model \
 --dim 30 --step 0.01 --epochs 10 --batch 1024
+```
+
+`all_bandgap_2020_10_09.pairs.dim89.model`:
+```
+python bin/create_skipatom_embeddings.py \
+--data out/all_bandgap_2020_10_09.pairs.training.data \
+--out out/all_bandgap_2020_10_09.pairs.dim89.model \
+--dim 89 --step 0.01 --epochs 10 --batch 1024
+```
+
+
+### Skip-gram on walks
+
+`all_stable_bandgap_2020_10_09_p4_q1_walk10_len40.dim30.word2vec.model`:
+```
+python bin/build_word2vec_model.py \
+--corpus out/all_stable_bandgap_2020_10_09_p4_q1_walk10_len40.walks.gz \
+--out out/all_stable_bandgap_2020_10_09_p4_q1_walk10_len40.dim30.word2vec.model \
+--components 30 --window 2 --train 10 -p 1
 ```
 
 

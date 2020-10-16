@@ -4,6 +4,7 @@ import numpy as np
 from numpy.linalg import svd
 import scipy
 from sklearn.decomposition import PCA
+from glove import Corpus
 
 try:
     import cPickle as pickle
@@ -109,6 +110,23 @@ class SVDModel:
         with open(counts_filename, "rb") as f:
             counts = pickle.load(f)
         return SVDModel(counts, d, p)
+
+
+class SVDModelFromGloVeCorpus:
+    def __init__(self, M, dictionary, d, p=None):
+        self.dictionary = dictionary
+        if p:
+            M = M / (np.sum(M, axis=1).reshape(-1, 1) ** p) ** (1 / p)
+            M = np.nan_to_num(M)  # if there are rows with all zeros, then nan values will result
+        U, S, V = svd(M)
+        self.vectors = U[:, :d]
+
+    @staticmethod
+    def load(glove_corpus_filename, d, p=None):
+        corpus_model = Corpus.load(glove_corpus_filename)
+        M = corpus_model.matrix.todense()  # an upper triangular matrix with diagonal values of zero
+        M = M + M.T  # convert to a symmetric matrix
+        return SVDModelFromGloVeCorpus(np.asarray(M), corpus_model.dictionary, d, p)
 
 
 class PCAModel:
